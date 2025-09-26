@@ -9,9 +9,10 @@ if (process.env.CI) {
 }
 
 module.exports = function (karma) {
+  const testFile = process.env.TEST_FILE;
   karma.set({
     hostname: '127.0.0.1',
-    browsers: ['ChromeHeadless'],
+    browsers: [testFile ? 'Chrome' : 'ChromeHeadless'],
     customLaunchers: {
       ChromeHeadless: {
         base: 'Chrome',
@@ -41,10 +42,15 @@ module.exports = function (karma) {
       {
         pattern: path.resolve(__dirname, './test-extensions.js'),
       },
-      {
-        pattern: 'spec/**/*.test.js',
-        watched: false,
-      },
+      testFile
+        ? {
+            pattern: `spec/${testFile}`,
+            watched: false,
+          }
+        : {
+            pattern: 'spec/**/*.test.js',
+            watched: false,
+          },
       {
         pattern: '**/*',
         included: false,
