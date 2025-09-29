@@ -2,6 +2,7 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import vuePlugin from "eslint-plugin-vue";
 import vueParser from "vue-eslint-parser";
+import prettierPlugin from "eslint-plugin-prettier";
 
 export default [
   {
@@ -19,6 +20,7 @@ export default [
     plugins: {
       vue: vuePlugin,
       "@typescript-eslint": tsPlugin,
+      prettier: prettierPlugin,
     },
     rules: {
       // Vue rules
@@ -31,6 +33,9 @@ export default [
         { argsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/no-explicit-any": "off",
+
+      // Prettier integration
+      "prettier/prettier": "error", // shows Prettier issues as ESLint errors
     },
   },
 ];
