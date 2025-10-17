@@ -1,0 +1,9 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "never", // only when you manually trigger it
+    "source.fixAll.eslint": "always" // ESLint auto-fix on save
+  },
+  "typescript.preferences.organizeImports": {
+    "mode": "removeUnused" // VSCode 1.92+ feature — no sorting!
+  }
+}
