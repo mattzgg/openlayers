@@ -28,7 +28,7 @@ onMounted(() => {
 
 <style>
 #map {
-  width: 400px;
-  height: 300px;
+  box-sizing: border-box;
+  height: 100%;
 }
 </style>
