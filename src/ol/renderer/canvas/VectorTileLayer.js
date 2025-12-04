@@ -14,6 +14,7 @@ import {
   getTopLeft,
   intersects,
 } from '../../extent.js';
+import {equivalent, getTransform, transformExtent} from '../../proj.js';
 import CanvasBuilderGroup from '../../render/canvas/BuilderGroup.js';
 import CanvasExecutorGroup, {
   DECLUTTER,
@@ -213,6 +214,7 @@ class CanvasVectorTileLayerRenderer extends CanvasTileLayerRenderer {
       !builderState.dirty &&
       builderState.renderedResolution === resolution &&
       builderState.renderedRevision == revision &&
+      builderState.renderedPixelRatio === pixelRatio &&
       builderState.renderedRenderOrder == renderOrder
     ) {
       return;
@@ -234,9 +236,22 @@ class CanvasVectorTileLayerRenderer extends CanvasTileLayerRenderer {
       if (sourceTile.getState() != TileState.LOADED) {
         continue;
       }
+      const sourceProjection = source.getProjection();
       const sourceTileCoord = sourceTile.tileCoord;
-      const sourceTileExtent =
-        sourceTileGrid.getTileCoordExtent(sourceTileCoord);
+      let sourceTileExtent = sourceTileGrid.getTileCoordExtent(sourceTileCoord);
+      if (
+        projection &&
+        sourceProjection &&
+        !equivalent(projection, sourceProjection)
+      ) {
+        sourceTileExtent = transformExtent(
+          sourceTileExtent,
+          sourceProjection,
+          projection,
+          32,
+        );
+      }
+
       const sharedExtent = getIntersection(tileExtent, sourceTileExtent);
       const builderExtent = buffer(
         sharedExtent,
@@ -287,7 +302,17 @@ class CanvasVectorTileLayerRenderer extends CanvasTileLayerRenderer {
         features.sort(renderOrder);
       }
       for (let i = 0, ii = features.length; i < ii; ++i) {
-        const feature = features[i];
+        let feature = features[i];
+        if (
+          projection &&
+          sourceTile.projection &&
+          !equivalent(projection, sourceTile.projection)
+        ) {
+          feature = feature.clone();
+          feature
+            .getGeometry()
+            .applyTransform(getTransform(sourceTile.projection, projection));
+        }
         if (
           !bufferedExtent ||
           intersects(bufferedExtent, feature.getGeometry().getExtent())
@@ -315,6 +340,7 @@ class CanvasVectorTileLayerRenderer extends CanvasTileLayerRenderer {
       tile.executorGroups[layerUid].push(renderingReplayGroup);
     }
     builderState.renderedRevision = revision;
+    builderState.renderedPixelRatio = pixelRatio;
     builderState.renderedRenderOrder = renderOrder;
     builderState.renderedResolution = resolution;
   }
@@ -732,7 +758,7 @@ class CanvasVectorTileLayerRenderer extends CanvasTileLayerRenderer {
 
   /**
    * Render the vectors for this layer.
-   * @param {CanvasRenderingContext2D} context Target context.
+   * @param {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D} context Target context.
    * @param {import("../../Map.js").FrameState} frameState Frame state.
    * @override
    */
