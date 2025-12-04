@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import Map from '@ol/Map';
 import View from '@ol/View';
+import ScaleLine from '@ol/control/ScaleLine';
+import { defaults as defaultControls } from '@ol/control/defaults';
 import { default as TileLayer } from '@ol/layer/Tile';
+import '@ol/ol.css';
 import OSM from '@ol/source/OSM';
 import { onMounted } from 'vue';
-import '@ol/ol.css';
 
 onMounted(() => {
   const map = new Map({
@@ -18,6 +20,7 @@ onMounted(() => {
       center: [0, 0],
       zoom: 2,
     }),
+    controls: defaultControls().extend([new ScaleLine()]),
   });
 });
 </script>
